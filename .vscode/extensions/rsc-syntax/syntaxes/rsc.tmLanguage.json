@@ -1,0 +1,100 @@
+{
+    "name": "RSC Script",
+    "scopeName": "source.rsc",
+    "patterns": [
+        {
+            "name": "comment.line.double-slash.rsc",
+            "match": "//.*$"
+        },
+        {
+            "name": "comment.block.rsc",
+            "begin": "/\\*",
+            "end": "\\*/"
+        },
+        {
+            "name": "string.quoted.double.rsc",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.rsc",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        {
+            "name": "storage.modifier.rsc",
+            "match": "\\b(lbl|def)\\b"
+        },
+        {
+            "name": "storage.type.rsc",
+            "match": "\\b(int|str|rel|reg)\\b"
+        },
+        {
+            "name": "keyword.control.rsc",
+            "match": "\\b(call|goto|adr|eval|org|hex|str|pr_length)\\b"
+        },
+        {
+            "name": "entity.name.function.rsc",
+            "match": "(?<=def\\s)\\w+"
+        },
+        {
+            "name": "entity.name.label.rsc",
+            "match": "(?<=lbl\\s)\\w+(?=:)"
+        },
+        {
+            "name": "variable.other.register.rsc",
+            "match": "\\b(r[0-9]|er[0-9]|er1[0-4]|xr[0-9]|xr1[0-4]|qr[0-9]|qr1[0-4]|sp|pc)\\b"
+        },
+        {
+            "name": "constant.other.key.rsc",
+            "match": "\\bKEY_[A-Z0-9_]+\\b"
+        },
+        {
+            "name": "constant.numeric.rsc",
+            "match": "\\b0x[0-9a-fA-F]+\\b|\\b\\d+\\b"
+        },
+        {
+            "name": "variable.other.rsc",
+            "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+            "name": "keyword.operator.assignment.rsc",
+            "match": "="
+        },
+        {
+            "name": "punctuation.separator.rsc",
+            "match": ",|;|:"
+        },
+        {
+            "name": "punctuation.definition.parameters.rsc",
+            "match": "\\(|\\)"
+        },
+        {
+            "comments": {
+                "lineComment": "//",
+                "blockComment": [
+                    "/*",
+                    "*/"
+                ]
+            },
+            "autoClosingPairs": [
+                {
+                    "open": "\"",
+                    "close": "\""
+                },
+                {
+                    "open": "/*",
+                    "close": "*/"
+                }
+            ],
+            "wordPattern": "([a-zA-Z0-9_\\.])",
+            "indentationRules": {
+                "increaseIndentPattern": ".*(:|\\(\\)).*$",
+                "decreaseIndentPattern": null
+            }
+        }
+    ],
+    "repository": {},
+    "scopeName": "source.rsc"
+}

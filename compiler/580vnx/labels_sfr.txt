@@ -8,6 +8,7 @@ d_0F020		timer.interval
 d_0F022		timer.counter
 d_0F024
 d_0F025		timer.control
+d_0F030		screen.range
 d_0F031		screen.mode
 d_0F032		screen.contrast
 d_0F033		screen.contrast2

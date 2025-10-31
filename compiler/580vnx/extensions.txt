@@ -1,0 +1,48 @@
+---syntax---
+line_print({x},{y},{addr})
+---output---
+xr0 = {x}, {y}, {addr}
+line_print
+---
+
+---syntax---
+setup_loop({src},{backup},{label})
+---output---
+lbl restore:
+    setlr
+    DI,RT
+    xr0 = adr(length), 0x01, 0x00
+    [er0] = er2,rt
+    qr0 = pr_length, {backup}, {src}, 0x0000
+    0x8932
+lbl length:
+    0x0800
+    0x0000
+lbl set_sp:
+    er6 = eval(adr({label}) - 0x2)
+    sp = er6,pop er8
+---
+
+---syntax---
+print({string})
+---output---
+xr0 = 0x01, 0x01, adr(text)
+line_print.col_0
+lbl text:
+    0x0000
+    str {string}
+---
+
+---syntax---
+clear()
+---output---
+buffer_clear
+render.ddd4
+---
+
+---syntax---
+delay({value})
+---output---
+er0 = {value}
+delay
+---
