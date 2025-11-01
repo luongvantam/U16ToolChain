@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# Created by luongvantam last created: 02:45 PM 11-01-2025(GMT+7)
 import re, sys, os
 from functools import lru_cache
 
@@ -337,9 +338,34 @@ def handle_label_definition(line):
     start program execution. By default it's at the begin.
     """
     global labels, result
-    label = to_lowercase(line.strip()[4:-1].strip())
+    label = to_lowercase(line.strip()[4:].strip())
     assert label not in labels, f'Duplicate label: {label}'
     labels[label] = len(result)
+    
+def handle_function_definition(line, program_iter, defined_functions):
+    """
+    Xử lý cú pháp:
+        func <name>(<args>) {
+            ...
+        }
+    Lưu trữ body vào defined_functions[<name>] = {"args": [...], "body": [...]}
+    """
+    m = re.match(r'func\s+(\w+)\s*\((.*?)\)\s*\{', line.strip())
+    if not m:
+        raise ValueError(f"Invalid func definition: {line}")
+    func_name = m.group(1)
+    func_args = [arg.strip() for arg in m.group(2).split(',')] if m.group(2) else []
+    
+    body = []
+    for _, raw_line in program_iter:
+        stripped = raw_line.strip()
+        if stripped == '}':
+            break
+        body.append(stripped)
+    
+    if func_name in defined_functions:
+        raise ValueError(f"Duplicate function: {func_name}")
+    defined_functions[func_name] = {"args": func_args, "body": body}
 
 def handle_hex_data(line):
     """Syntax: 0x<hex_digits>"""
@@ -511,7 +537,6 @@ def handle_assignment_command(line):
         assert len(result) - l1 == sizeof_register(register), f'Line {line!r} source/destination target mismatches'
 
     else:
-        # Gán thanh ghi thông thường
         register, value = left, right
         value = value.replace(',', ';')
         process_line(f'call pop {register}')
@@ -605,57 +630,41 @@ def handle_key_constant(line):
     result.extend(new_bytes_list)
 
 def handle_string_command(line):
-    ''' Syntax:
-    - str <var> "<string>" :        store the hex value of the string into the variable <var> -> Define and store string in variable
-    - str <var>           :        Use(get value) of <var> [requires declaring string of var before calling] -> Use previously defined string variable
-    - str "<string>"       :        Get the hex value of a <string> directly (without using a variable, or reusing it) -> Direct string usage
-    + char "~" converted to space
+    ''' Syntax: str "<string>" -> convert string directly to hex and append to result
+        - char "~" converted to space
     '''
-    global string_vars, result
+    global result
     
     content = line[3:].strip()
+    if not (content.startswith('"') and content.endswith('"')):
+        raise ValueError('Invalid str command syntax, must be: str "<string>"')
+    
+    text = content[1:-1].replace(" ", "~")
+    
+    # Convert string to bytes
+    byte_list = []
+    for c in text:
+        try:
+            hex_val = char_to_hex[c]
+            if len(hex_val) == 2:
+                byte_list.append(int(hex_val, 16))
+            elif len(hex_val) == 4:
+                byte_list.extend([int(hex_val[:2], 16), int(hex_val[2:], 16)])
+        except KeyError:
+            raise ValueError(f"Character '{c}' not found in conversion table")
+    
+    result.extend(byte_list)
 
-    def string_to_bytes(text):
-        byte_list = []
-        print("Processing string:", text.replace('~', ' '))
-        for c in text:
-            try:
-                hex_val = char_to_hex[c]
-                if len(hex_val) == 2:
-                    byte_list.append(int(hex_val, 16))
-                elif len(hex_val) == 4:
-                    byte_list.extend([int(hex_val[:2], 16), int(hex_val[2:], 16)])
-            except KeyError:
-                raise ValueError(f"Character '{c}' not found in conversion table")
-        return byte_list
-
-    if '"' in content:
-        quote_pos = content.find('"')
-        var_name = content[:quote_pos].strip() if quote_pos > 0 else None
-        text = content[quote_pos+1:].rstrip('"').replace(" ", "~")
-
-        if var_name:
-            string_vars[var_name] = text
-        else:
-            new_bytes_list = string_to_bytes(text)
-            result.extend(new_bytes_list)
-
-    elif content:
-        var_name = content.strip()
-        if var_name in string_vars:
-            text = string_vars[var_name]
-            new_bytes_list = string_to_bytes(text)
-            result.extend(new_bytes_list)
-        else:
-            raise ValueError(f"Undefined string variable: {var_name}")
-    else:
-        raise ValueError("Invalid str command syntax")
-
-def dispatch_command_handler(line):
+def dispatch_command_handler(line, program_iter=None, defined_functions=None):
     global datalabels, commands, vars_dict
+    line_strip = line.strip()
 
-    if line.strip().lower().startswith('lbl ') and line.strip().endswith(':'):
+    if line.strip().lower().startswith('lbl '):
         handle_label_definition(line)
+    elif line_strip.startswith("func "):
+        if program_iter is None or defined_functions is None:
+            raise ValueError("Function handling requires program_iter and defined_functions")
+        handle_function_definition(line, program_iter, defined_functions)
     elif line.startswith('0x'):
         handle_hex_data(line)
     elif line.startswith('eval(') and line.endswith(')'):
@@ -775,41 +784,18 @@ def process_program(args, program_lines, overflow_initial_sp):
     for line_index, raw_line in program_iter:
         line = canonicalize(del_inline_comment(raw_line))
         
-        if line.strip().startswith("def ") and line.strip().endswith(":"):
-            header_line = line.strip()
-            function_body = []
-            
-            line_to_process_immediately = None
-            while True:
-                try:
-                    next_index, next_raw_line = next(program_iter)
-                    next_line_stripped = next_raw_line.strip()
-                    
-                    if not next_raw_line.startswith((" ", "\t")) and next_line_stripped:
-                         line_to_process_immediately = next_raw_line
-                         break
-                    elif next_line_stripped:
-                         function_body.append(next_line_stripped)
-                except StopIteration:
-                    line_to_process_immediately = None
-                    break
-            
-            func_name = header_line.split("def", 1)[1].split("(", 1)[0].strip()
-            defined_functions[func_name] = {"body": function_body}
-            
-            if line_to_process_immediately:
-                final_lines_to_process.append(canonicalize(del_inline_comment(line_to_process_immediately)))
-            
+        if line.strip().startswith("func "):
+            handle_function_definition(line, program_iter, defined_functions)
             continue
 
-        elif "(" in line and line.strip().endswith(")"):
+        if "(" in line and line.strip().endswith(")"):
             called_func_name = line.split("(", 1)[0].strip()
             if called_func_name in defined_functions:
                 func = defined_functions[called_func_name]
                 for line_in_func in func["body"]:
                     final_lines_to_process.append(line_in_func)
                 continue
-    
+
         final_lines_to_process.append(line)
 
     for line in final_lines_to_process:
@@ -970,21 +956,6 @@ def process_program(args, program_lines, overflow_initial_sp):
 
     for label, home_offset in labels.items():
         note(f'Label {label} is at address {home + home_offset:04X}\n')
-        
-    if vars_dict:
-        for var_name, vval in vars_dict.items():
-            display_val = vval
-            if isinstance(vval, list):
-                try:
-                    is_valid_string = all(0 <= b < len(font) for b in vval)
-                    if is_valid_string:
-                        s = to_font(vval)
-                        display_val = f'"{s}"'
-                    else:
-                        display_val = '0x' + ''.join(f'{b:02x}' for b in vval[::-1])
-                except NameError:
-                    display_val = f'[List: {vval}]'
-            note(f'Variable {var_name} has value is {display_val}\n')
             
     if args.target == 'overflow':
         hackstring = list(map(ord, '1234567890' * 10))
