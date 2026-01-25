@@ -1,0 +1,602 @@
+09fa8		setlr
+308d0		setlr_pc
+0a058		EI,RT
+0a05c		DI,RT
+23f9e		calc_checksum_set_f004
+23fa6		calc_checksum_no_set_f004
+23fad		calc_checksum_0
+23fc0		calc_checksum_1
+23fd4		calc_checksum_2
+23fea		calc_checksum_3
+23f21		pr_checksum
+09ca0		[er8] += er2,pop xr8
+2702e		sp = er14,pop er14,rt
+12da6		sp = er14,pop qr8
+23f82		sp = er14,pop qr8,pop qr0
+20d60		sp = er14,pop er14
+21f74		sp = er6,pop er8
+09820		sp = er14,pop xr12
+13aac		sp = er14,pop qr8,pop er6
+1939E		sp = er4,sp += 32H,pop xr4,pop qr8
+0ac34		er14 = sp,rt
+0a8a8		nop
+
+;Some POP R0 gadgets:
+1960A       pop r0
+1972C       pop r0
+20AA4       pop r0
+
+;Some POP R4 gadgets:
+0995E       pop r4,rt
+16200       pop r4,rt
+16210       pop r4,rt
+15F44       pop r4
+15F5A       pop r4
+15FC0       pop r4
+
+;Some POP R8 gadgets:
+16D12	    pop r8
+1844A	    pop r8
+18462	    pop r8
+187F0	    pop r8
+20CEE	    pop r8
+
+;Some POP R9 gadgets:
+14C98	    pop r9
+201FA	    pop r9
+
+;Some POP R12 gadgets:
+14C98	    pop r12
+201FA	    pop r12
+
+;Some POP ER0 gadgets:
+13332		pop er0,rt
+09A38		pop er0,rt
+1333E		pop er0,rt
+12602		pop er0
+1216A		pop er0
+18380		pop er0
+171CC		pop er0
+15FE0		pop er0
+09D12		pop er0
+0946C		pop er0
+09454		pop er0
+
+; Some POP ER2 gadgets:
+09D3E       pop er2
+18974       pop er2
+1897A       pop er2
+2143E       pop er2
+
+; Some POP ER4 gadgets:
+16D88       pop er4,rt
+16D9E       pop er4,rt
+2098A       pop er4,rt
+250a6		pop er4
+08C46		pop er4
+09730		pop er4
+09756		pop er4
+0977C		pop er4
+097B0		pop er4
+0A564		pop er4
+0A91E		pop er4
+0AC8C		pop er4
+0CCCA		pop er4
+3000C		pop er4
+2FFC2		pop er4
+2FECA		pop er4
+2F65E		pop er4
+2E8DE		pop er4
+2D264		pop er4
+0D808		pop er4
+0EF12		pop er4
+0F3E8		pop er4
+14C00		pop er4
+14C14		pop er4
+2C7AC		pop er4
+2AD94		pop er4
+2ABD6		pop er4
+29A0E		pop er4
+283E8		pop er4
+27FF4		pop er4
+265FC		pop er4
+2470C		pop er4
+206F2		pop er4
+1FCF4		pop er4
+1F454		pop er4
+192CE		pop er4
+1921A		pop er4
+1893C		pop er4
+183E2		pop er4
+17B12		pop er4
+
+; Some POP ER6 gadgets:
+1DCF6		pop er6,rt
+13AB0		pop er6
+162B4		pop er6
+
+; Some POP ER8 gadgets:
+0AC5C	    pop er8, rt
+0C1F4	    pop er8, rt
+0E602	    pop er8, rt
+0EA74	    pop er8, rt
+16D7C	    pop er8, rt
+1FC2C	    pop er8, rt
+20A7C	    pop er8, rt
+20E9C	    pop er8, rt
+24BF0	    pop er8, rt
+27E82	    pop er8, rt
+28410	    pop er8, rt
+2AB38	    pop er8, rt
+2E2FA	    pop er8, rt
+2F788	    pop er8, rt
+0A248	    pop er8
+0A3FC	    pop er8
+0A8A6	    pop er8
+0ABE2	    pop er8
+0BF6A	    pop er8
+0D36A	    pop er8
+0D38A	    pop er8
+0D870	    pop er8
+0E234	    pop er8
+0E25E	    pop er8
+0E5C4	    pop er8
+0E794	    pop er8
+0EA8E	    pop er8
+0EAA8	    pop er8
+0EAC2	    pop er8
+0F026	    pop er8
+0F1FA	    pop er8
+0FBE8	    pop er8
+1668E	    pop er8
+16756	    pop er8
+16E7C	    pop er8
+183C6	    pop er8
+1E3BE	    pop er8
+1EE02	    pop er8
+1FC6E	    pop er8
+20A54	    pop er8
+20D30	    pop er8
+20E46	    pop er8
+21F76	    pop er8
+247E0	    pop er8
+25AFC	    pop er8
+263CC	    pop er8
+263FC	    pop er8
+26416	    pop er8
+26B16	    pop er8
+274A0	    pop er8
+281EE	    pop er8
+286C0	    pop er8
+2949E	    pop er8
+29B24	    pop er8
+2B9AE	    pop er8
+2CC1E	    pop er8
+2CF16	    pop er8
+2D162	    pop er8
+2E850	    pop er8
+2EAE2	    pop er8
+2EB86	    pop er8
+2F0D8	    pop er8
+2F1FA	    pop er8
+2F736	    pop er8
+2F79C	    pop er8
+2F82E	    pop er8
+2F9B4	    pop er8
+2F9F2	    pop er8
+
+; Some POP ER10 gadgets:
+0A1B8       pop er10
+0D516       pop er10
+
+; Some POP ER12 gadgets:
+0AC7E       pop er12,rt
+16ECA       pop er12,rt
+29A46       pop er12,rt
+164E8       pop er12
+1914C       pop er12
+21636       pop er12
+22416       pop er12
+2245E       pop er12
+
+; Some POP ER14 gadgets:
+093FC       pop er14,rt
+0A912       pop er14,rt
+1EBC8       pop er14,rt
+27030       pop er14,rt
+10742       pop er14
+10CCA       pop er14
+15C78       pop er14
+18DEC       pop er14
+20C26       pop er14
+20CA0       pop er14
+20D62       pop er14
+
+; Some POP EA gadgets:
+1ec0c		pop ea, pc
+2809E       pop ea, pc
+
+; Some POP XR0 gadgets:
+09E68	    pop xr0
+0A124	    pop xr0
+1622E	    pop xr0
+1657E	    pop xr0
+1703E	    pop xr0
+17B24	    pop xr0
+17B34	    pop xr0
+1DD74	    pop xr0
+23CA0	    pop xr0
+23CB0	    pop xr0
+
+; Some POP XR4 gadgets:
+0D824       pop xr4,rt
+1D972       pop xr4,rt
+1D9A4       pop xr4,rt
+1EDEE       pop xr4,rt
+08CB4	    pop xr4
+08EFE	    pop xr4
+09048	    pop xr4
+091DE	    pop xr4
+094BA	    pop xr4
+096DA	    pop xr4
+098F0	    pop xr4
+0DB84	    pop xr4
+0DC1A	    pop xr4
+0F3B4	    pop xr4
+10B40	    pop xr4
+10C2E	    pop xr4
+10E86	    pop xr4
+10F34	    pop xr4
+13416	    pop xr4
+135B6	    pop xr4
+13758	    pop xr4
+138AA	    pop xr4
+14C34	    pop xr4
+15C5C	    pop xr4
+15F0C	    pop xr4
+1694E	    pop xr4
+16E88	    pop xr4
+16EAA	    pop xr4
+17B7C	    pop xr4
+17C86	    pop xr4
+17D28	    pop xr4
+17DFA	    pop xr4
+17F2E	    pop xr4
+17F56	    pop xr4
+17FB2	    pop xr4
+18076	    pop xr4
+18176	    pop xr4
+1826A	    pop xr4
+191F2	    pop xr4
+195AC	    pop xr4
+19A38	    pop xr4
+1B22C	    pop xr4
+1B240	    pop xr4
+1B282	    pop xr4
+1CBFA	    pop xr4
+1CCB0	    pop xr4
+1CCF0	    pop xr4
+1CE8A	    pop xr4
+1CF6E	    pop xr4
+1CFAE	    pop xr4
+1D004	    pop xr4
+1D040	    pop xr4
+1D17C	    pop xr4
+1D1C0	    pop xr4
+1D232	    pop xr4
+1D2E4	    pop xr4
+1D49E	    pop xr4
+1D51E	    pop xr4
+1D5D6	    pop xr4
+1D606	    pop xr4
+1D67C	    pop xr4
+1D88E	    pop xr4
+1D92E	    pop xr4
+1DA08	    pop xr4
+1DA4E	    pop xr4
+1DA8E	    pop xr4
+1DADE	    pop xr4
+1DB66	    pop xr4
+1DBC8	    pop xr4
+1DC24	    pop xr4
+1DC76	    pop xr4
+1DCC6	    pop xr4
+1DD26	    pop xr4
+202B4	    pop xr4
+23D56	    pop xr4
+23E3C	    pop xr4
+23E8E	    pop xr4
+24C56	    pop xr4
+26C8A	    pop xr4
+2B30E	    pop xr4
+2B982	    pop xr4
+2C820	    pop xr4
+2CA7A	    pop xr4
+2E242	    pop xr4
+2F434	    pop xr4
+
+; Some POP XR8 gadgets:
+094F0       pop xr8,rt
+0E5E2       pop xr8,rt
+0E822       pop xr8,rt
+209EA       pop xr8,rt
+20A34       pop xr8,rt
+298DE       pop xr8,rt
+2EDC4       pop xr8,rt
+2F886       pop xr8,rt
+08CFC	    pop xr8
+08DBC	    pop xr8
+08E5E	    pop xr8
+09CA6	    pop xr8
+0F8FE	    pop xr8
+13908	    pop xr8
+16EF8	    pop xr8
+16F5E	    pop xr8
+174DA	    pop xr8
+17580	    pop xr8
+175BC	    pop xr8
+1769A	    pop xr8
+182FA	    pop xr8
+183A6	    pop xr8
+1841A	    pop xr8
+1850C	    pop xr8
+20B54	    pop xr8
+2122E	    pop xr8
+2133E	    pop xr8
+21B9E	    pop xr8
+26112	    pop xr8
+2632C	    pop xr8
+27EB4	    pop xr8
+28194	    pop xr8
+284AE	    pop xr8
+284BA	    pop xr8
+28CC0	    pop xr8
+2980A	    pop xr8
+2B2E6	    pop xr8
+2FB30	    pop xr8
+
+; Some POP XR12 gadgets:
+10E5A       pop xr12,rt
+09822	    pop xr12
+15C8E	    pop xr12
+18E66	    pop xr12
+1D79A	    pop xr12
+1D7C6	    pop xr12
+1D80E	    pop xr12
+2045E	    pop xr12
+20730	    pop xr12
+
+; Some POP QR0 gadgets:
+1701A	    pop qr0,rt
+17072	    pop qr0,rt
+130A4	    pop qr0
+17BDA	    pop qr0
+23C90	    pop qr0
+23F86	    pop qr0
+
+; Some POP QR8 gadgets:
+08C76       pop qr8,rt
+09CC0       pop qr8,rt
+14C50       pop qr8,rt
+08F78	    pop qr8
+08FF2	    pop qr8
+09934	    pop qr8
+099A0	    pop qr8
+09DBC	    pop qr8
+09E20	    pop qr8
+0AC3C	    pop qr8
+10D4E	    pop qr8
+12ACA	    pop qr8
+12BB8	    pop qr8
+12C7C	    pop qr8
+12CF8	    pop qr8
+12D2C	    pop qr8
+12DA8	    pop qr8
+12E6E	    pop qr8
+12FAA	    pop qr8
+13186	    pop qr8
+131F8	    pop qr8
+13322	    pop qr8
+13552	    pop qr8
+13622	    pop qr8
+137B4	    pop qr8
+139BE	    pop qr8
+13A1C	    pop qr8
+13B4E	    pop qr8
+13D96	    pop qr8
+1457A	    pop qr8
+14BEC	    pop qr8
+14CE2	    pop qr8
+14D24	    pop qr8
+15D56	    pop qr8
+15E10	    pop qr8
+17B56	    pop qr8
+18358	    pop qr8
+189B4	    pop qr8
+18A7E	    pop qr8
+18BAA	    pop qr8
+19134	    pop qr8
+19278	    pop qr8
+193A4	    pop qr8
+1D642	    pop qr8
+20358	    pop qr8
+204EA	    pop qr8
+20664	    pop qr8
+2110E	    pop qr8
+2222A	    pop qr8
+222B4	    pop qr8
+22340	    pop qr8
+224E2	    pop qr8
+22CA4	    pop qr8
+22D6A	    pop qr8
+23E66	    pop qr8
+2400C	    pop qr8
+24068	    pop qr8
+
+; Some POP gadgets:
+1893a		pop er0,pop er4
+16754		pop er4,pop er8
+1A104		pop er8,pop qr0
+
+; Some ADD gadgets:
+14bd8		er0 += er4,rt
+13b80		er4 += er0,r8 = r8,rt
+21ba8		er0 += er8,rt
+21bae		er2 += er8,rt
+09CA2		er2 += er10,[er8] = er2,pop xr8
+2fa0c		er0 += er2,rt
+16078		er0 += 1,rt
+09ce4		r0 += 1,rt
+19850		r0 += r4,rt
+1332a		[er4] += 1,rt
+13336		[er4] -= 1,rt
+
+; Some MOV gadgets:
+24008		er6 = er0,er0 = er8,pop qr8
+16170		er8 = er0
+0ea70		er2 = er0,er0 = er2,pop er8,rt
+14bd6		er2 = er0,er0 += er4,rt
+0bf30		er0 = er2,rt
+1974e		er6 = er4,rt
+2470a		er0 = er4,pop er4
+2f786		er0 = er8,pop er8,rt
+15386		er0 = er8
+1edea		er0 = er6,pop er8,pop xr4
+28c86		er2 = er0,r0 = r4,r1 = 0,pop xr4,rt
+2ffc0		r0 = r5,pop er4
+1abb0		r0 = r2 = 0
+1abb2		r0 = r2
+15fde		r2 = r0,pop er0
+164e4		r2 = r0,pop r6,pop er12
+2122c		r2 = r0,pop xr8
+177b4		r2 = 0,r7 = 4
+1ca8a		r0 = 0
+17e7c		r11 = 0
+1DD54		r0 = 0,rt
+0D5DC		r0 = 1
+1DD58		r0 = 1,rt
+18978		r0 = 0,pop er2
+2ac30		r1 = 0,rt
+2FEC8		r0 = r4,pop er4,rt
+2C7AA		r0 = r4,pop er4
+16df2		r5 = 0,rt
+17b32		er14 = er0,pop xr0
+1428A		er12 = er14
+0ac7c		er0 = er12,pop er12,rt
+13916		er10 = er2,rt
+20b52		er0 = er10,pop xr8
+14FCE		er10 = er0,rt
+1e60c		er0 = 1,rt
+180d2		er2 = 0,er4 = 0,er6 = 0,er8 = 1,rt
+09caa		er2 = 0,r0 = 2,[er8] = er2,pop xr8
+0a88a		er2 = 1,r0 = r2,rt
+09c9e		r0 = 0,[er8] += er2,pop xr8
+27e7c		r0 = r2 = 1,pop er4,pop er8,rt
+27e92		r0 = r1,rt
+20cec		r0 = r8,pop r8
+1edea		er0 = er6,pop er8,pop xr4,rt
+0c1e6		er2 = er4,er0 -= er2,pop er4,pop er8,rt
+28C86		er2 = er0,r0 = r4,r1 = 0,pop xr4
+208E8		er0 = ea,rt
+13B90       er2 = er0,er0 += er4,rt
+
+; Some ST gadgets:
+16d9a		[er2] = er0,r2 = 0,pop er4,rt
+139d8		[er0] = er2,rt
+208b2		[er0] = r2,rt
+203D2		[er0] = r2
+176d4		[er2] = r0,r2 = 0
+09ca4		[er8] = er2,pop xr8
+13330		[er4] = er0,pop er0,rt
+1a588		[ea] = qr0
+1CB0C		[ea+] = r0,[ea+] = r2,rt
+1C696		[ea+] = er0
+09232		[ea] = r0,pop xr4,rt
+22226		[er12] = er14,pop xr4,pop qr8
+0D512		[er10] = er0,er0 = 0,pop er10
+10E78		[er4] = er0,er4 -= 2,pop ea,pop xr4
+093FA       [ea] = r0,pop er14,rt
+094EE       [ea] = er10,pop xr8,rt
+0A07E       [ea] = r2,rt
+17BD8       [ea] = xr4,pop qr0
+
+; Some L gadgets:
+16d7a		er4 = [er8],pop er8,rt
+13b9e		er0 = [er2],r2 = 9,rt
+13b6a		er8 = [er0],rt
+09e4a		r0 = [er2]
+18274		r0 = [er0]
+298dc		er0 = [er0],pop xr8,rt
+09fdc		r0 = [ea],rt
+21f72		sp = [er8],pop er8
+1C2C0  		qr0 = [ea]
+19F44  		er8 = [ea+],rt
+1C64A  		er6 = [ea+]
+
+; Some SUB gadgets:
+09e8a		er0 -= er2,rt
+29a40		er0 -= er12,pop er8,pop er12,rt
+09e98		r0 -= 1,rt
+0ac5a		r0 -= r8,pop er8,rt
+0ac54		r0 -= r2,pop er8,rt
+
+; Some Bitwise gadgets:
+1c6b4		r0 &= 0FH
+122d4		r0 |= r1
+0e1e0		r0 |= r1,rt
+20844		r1 |= r0,rt
+161fe		r0 |= r5,pop r4,rt
+1a5c2		qr0 |= qr8
+
+; Some SLL/SRL gadgets:
+20830		r0 >> 4,rt
+1bb28		qr0 >> 4,rt
+1bb5c		r0 << 4,rt
+1bb70		r1 << 4,rt
+1bb5a		er0 << 4,rt
+1bb56		xr0 << 4,rt
+1bb4e		qr0 << 4,rt
+
+; Some CMP gadgets:
+0c790		er0 - er2_gt,r0 = 0|r0 = 1,rt
+09ae6		er0 - er2_eq,r0 = 1|r0 = 0,rt
+0c7a8		er2 - er0_gt,r0 = 0|r0 = 1,rt
+2abda		er0 - er2_le,er0 = er2,rt
+19618		er4 - er2_ne,r0 = 0|r0 = 1
+10876		r0 - 1_eq,r0 = 0|r0 = 1
+24B34		r0 - 1_ne,r0 = 0|r0 = 1,rt
+192C2       er0 - er2_gts,r0 = 0|r0 = 1,pop er4
+19618       er4 - er2_ne,bl f_1b29a,r0 = 0|r0 = 1
+1FFEC       er0 - er2_gt,r0 = 0|r0 = 1,rt
+17E78       er0 - er4_le,r2 = 1,r0 = r2,pop er4,pop er8,rt
+
+; Some MUL gadgets:
+14bd4		er0 *= r2,er2 = er0,er0 += er4,rt
+14fca		er0 *= r2,er0 += er6,er10 = er0,rt
+13B7E		er4 *= r2,er4 += er0,r8 = r8,rt
+13B8E       er0 *= r2,er2 = er0,er0 += er4,rt
+
+; Some DIV gadgets:
+28C54		er0 /= r2,rt
+
+; BRK gadget
+33030		brk
+
+; Some other gadgets:
+0d71c		[ea] += 1,r0 = 3
+2c81e		[ea] -= 1,pop xr4
+24836		B LEAVE
+
+; BL gadgets:
+09450		BL memcpy,pop er0
+203CC		BL strcpy
+203E0		BL strcat
+09D3A		BL memset, pop er2
+23CAC		BL delay,pop xr0
+20C40		BL line_print
+23F62		BL printline
+24004		BL hex_byte,er6 = er0,er0 = er8,pop qr8
+20A50		BL smart_strcpy,pop er8
+0A052		BL zero_KO
+28AC2		BL line_draw
+09AD4		BL render.ddd4
