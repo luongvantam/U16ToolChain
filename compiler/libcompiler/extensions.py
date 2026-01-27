@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-import os, re
+import os, re, random, string
+
+GLOBAL_ENV = {}
 
 def load_extensions(path):
+    """ Load extensions from file """
     if not os.path.exists(path):
         print(f"[WARN] No extension file found: {path}")
         return []
@@ -21,60 +24,80 @@ def load_extensions(path):
         })
     return extensions
 
-def match_extension(line, extensions):
-    for ext in extensions:
-        syntax = ext["syntax"]
-        pattern = re.escape(syntax)
-        pattern = re.sub(r'\\\{(\w+)\\\}', r'(?P<\1>.+?)', pattern)
-        
-        m = re.fullmatch(pattern, line.strip())
-        if m:
-            return ext, m.groupdict()
-    return None, None
+
+def match_extension(line, ext):
+    """ Return match object if line matches extension syntax """
+    pattern = re.escape(ext["syntax"])
+    pattern = re.sub(r'\\\{(\w+)\\\}', r'(?P<\1>.+?)', pattern)
+    return re.fullmatch(pattern, line.strip())
+
 
 def expand_extensions_in_program(program_lines, extensions):
+    """ Expand program using loaded extensions """
     expanded = []
+
     for line in program_lines:
         line = line.split('---')[0].strip()
-        if not line: continue
-        
+        if not line:
+            continue
+
         current_line = line
         matched_full = False
-        
+
         for ext in sorted(extensions, key=lambda x: len(x["syntax"]), reverse=True):
-            pattern_str = re.escape(ext["syntax"]).replace(r"\{", "(?P<").replace(r"\}", ">.+?)")
-            
-            match = re.fullmatch(pattern_str, current_line)
-            is_inline = False
-            
-            if not match:
-                match = re.search(pattern_str, current_line)
-                is_inline = True
-            
-            if match:
-                local_env = match.groupdict()
-                if ext.get("logic"):
-                    try:
-                        import random, string, re as re_mod
-                        env = {**local_env, "random": random, "string": string, "re": re_mod}
-                        exec(ext["logic"], {}, env)
-                        local_env.update(env)
-                    except: pass
-                
-                output_lines = []
-                for out in ext["output"]:
-                    temp = out
-                    for k, v in local_env.items():
-                        temp = temp.replace(f"{{{k}}}", str(v))
-                    output_lines.append(temp)
-                
-                if is_inline and len(output_lines) == 1:
-                    current_line = current_line[:match.start()] + output_lines[0] + current_line[match.end():]
-                else:
-                    expanded.extend(output_lines)
-                    matched_full = True
-                    break
-        
-        if not matched_full:
-            expanded.append(current_line)
-    return expanded
+            match = match_extension(current_line, ext)
+            for line in program_lines:
+                line = line.split('---')[0].strip()
+                if not line:
+                    continue
+
+                current_line = line
+                matched_full = False
+
+                for ext in sorted(extensions, key=lambda x: len(x["syntax"]), reverse=True):
+                    match = match_extension(current_line, ext)
+                    is_inline = False
+
+                    if not match:
+                        match = re.search(
+                            re.escape(ext["syntax"]).replace(r"\{", "(?P<").replace(r"\}", ">.+?)"),
+                            current_line
+                        )
+                        is_inline = True
+
+                    if match:
+                        local_env = match.groupdict()
+                        # Execute extension logic with shared GLOBAL_ENV
+                        if ext.get("logic"):
+                            try:
+                                env = GLOBAL_ENV
+                                env.update(local_env)
+                                env.update({"random": random, "string": string, "re": re})
+                                exec(ext["logic"], env, env)
+                                local_env.update(env)
+                            except Exception as e:
+                                print(f"[ERROR] extension logic: {e}")
+
+                        # Prepare output
+                        output_lines = []
+                        merged_env = {}
+                        merged_env.update(GLOBAL_ENV)
+                        merged_env.update(local_env)
+
+                        for out in ext["output"]:
+                            temp = out
+                            for k, v in merged_env.items():
+                                temp = temp.replace(f"{{{k}}}", str(v))
+                            output_lines.append(temp)
+
+                        if is_inline and len(output_lines) == 1:
+                            current_line = current_line[:match.start()] + output_lines[0] + current_line[match.end():]
+                        else:
+                            expanded.extend(output_lines)
+                            matched_full = True
+                            break
+
+                if not matched_full:
+                    expanded.append(current_line)
+
+            return expanded

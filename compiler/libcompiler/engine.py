@@ -113,11 +113,18 @@ def handle_assignment_command(line):
 
     if left.startswith("var "):
         var_name = left[4:].strip()
+        val = right.strip()
+        # Try int (dec/hex), else string
         try:
-            import ast
-            context.vars_dict[var_name] = ast.literal_eval(right.strip())
-        except (ValueError, SyntaxError):
-            context.vars_dict[var_name] = right.strip()
+            if val.startswith('0x') or val.startswith('0X'):
+                context.vars_dict[var_name] = int(val, 16)
+            else:
+                context.vars_dict[var_name] = int(val)
+        except ValueError:
+            # Remove quotes if present
+            if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+                val = val[1:-1]
+            context.vars_dict[var_name] = val
     elif left.startswith("reg "):
         register = left[4:].strip()
         value = right.replace(',', ';')
@@ -148,26 +155,29 @@ def handle_variable_expansion(line):
         for var_name in vars_found:
             if var_name not in context.vars_dict:
                 raise ValueError(f"Undefined variable: {var_name}")
-            
             var_value = context.vars_dict[var_name]
-            replacement_str = ""
-            if isinstance(var_value, list):
-                replacement_str = '0x' + ''.join(f'{b:02x}' for b in var_value)
-            elif isinstance(var_value, int):
-                replacement_str = f'0x{var_value:x}'
-            elif isinstance(var_value, str):
-                replacement_str = var_value
+            # If the variable is a string, process as string literal (hex), else as number
+            if isinstance(var_value, str):
+                # Recursively expand variables inside the string value
+                expanded_val = expand_vars_in_line(var_value) if '{' in var_value else var_value
+                # Replace the variable in the string, then process as string literal
+                expanded_s = expanded_s.replace(f'{{{var_name}}}', expanded_val)
             else:
-                raise ValueError(f"Unsupported variable type for {var_name}: {type(var_value)}")
-
-            if f'{{{var_name}}}' in expanded_s:
-                expanded_s = expanded_s.replace(f'{{{var_name}}}', replacement_str)
-                changed = True
-        
+                expanded_s = expanded_s.replace(f'{{{var_name}}}', str(var_value))
+            changed = True
         if changed and '{' in expanded_s:
             return expand_vars_in_line(expanded_s)
         return expanded_s
-    process_line(expand_vars_in_line(line))
+    expanded = expand_vars_in_line(line)
+    # If the result is a string literal, process as string, else as command
+    if expanded == line:
+        # No variable expansion, process as normal
+        process_line(line)
+    elif re.fullmatch(r'[\w~ ]+', expanded):
+        # Only word/tilde/space: treat as string literal
+        process_string_to_hex(expanded)
+    else:
+        process_line(expanded)
 
 def handle_org_command(line):
     hx = eval(line[3:])
@@ -209,27 +219,19 @@ def process_string_to_hex(text):
 
 def handle_any_string_command(line):
     line_strip = line.strip()
-    is_fstring = line_strip.startswith('f"')
     match = re.search(r'"(.*)"', line_strip)
-    if not match: return
+    if not match:
+        return
     content = match.group(1)
-
-    if is_fstring:
-        parts = re.split(r'(%.*?%)', content)
-        for part in parts:
-            if not part: continue
-            if part.startswith('%') and part.endswith('%'):
-                inner_cmd = part[1:-1].strip()
-                if '{' in inner_cmd and '}' in inner_cmd:
-                    handle_variable_expansion(inner_cmd)
-                elif inner_cmd in context.vars_dict:
-                    handle_variable_expansion(f"{{{inner_cmd}}}")
-                else:
-                    dispatch_command_handler(inner_cmd)
-            else:
-                process_string_to_hex(part)
-    else:
-        process_string_to_hex(content)
+    # Replace {var} with value from context.vars_dict
+    def replace_var(m):
+        var_name = m.group(1)
+        if var_name in context.vars_dict:
+            return str(context.vars_dict[var_name])
+        else:
+            raise ValueError(f"Undefined variable: {var_name}")
+    content = re.sub(r'\{([a-zA-Z_]\w*)\}', replace_var, content)
+    process_string_to_hex(content)
 
 def dispatch_command_handler(line, program_iter=None, defined_functions=None):
     line_strip = line.strip()
@@ -270,7 +272,11 @@ def process_line(line):
 
     if ';' in line:
         for command in line.split(';'):
-            process_line(to_lowercase(command))
+            cmd = command
+            # Only lowercase if not a string literal
+            if not cmd.strip().startswith('"'):
+                cmd = to_lowercase(cmd)
+            process_line(cmd)
     else:
         dispatch_command_handler(line)
 
@@ -313,10 +319,15 @@ def process_program(args, program_lines, overflow_initial_sp):
     final_lines_to_process = []
     defined_functions = {}
 
+    # Track original file line numbers for accurate debug
+    orig_line_map = []
+    for idx, raw_line in enumerate(program_lines):
+        orig_line_map.append(idx + 1)  # 1-based line number
+
     program_iter = iter(enumerate(program_lines))
     for line_index, raw_line in program_iter:
         line = canonicalize(del_inline_comment(raw_line))
-        
+
         if line.strip().startswith("func "):
             handle_function_definition(line, program_iter, defined_functions)
             continue
@@ -329,21 +340,21 @@ def process_program(args, program_lines, overflow_initial_sp):
             call_args = re.findall(r'("(?:[^"\\]|\\.)*"|[^,]+)', call_args_str)
             call_args = [arg.strip() for arg in call_args]
             if call_args == [''] and not call_args_str: call_args = []
-            
+
             if len(call_args) != len(func["args"]):
                 raise ValueError(f"Error calling function {line}: args mismatch")
 
             for param_def, arg_val in zip(func["args"], call_args):
                 if param_def.strip():
-                     final_lines_to_process.append({
+                    final_lines_to_process.append({
                         "exec": f"{param_def.strip()} = {arg_val}",
-                        "raw": raw_line, "num": line_index + 1, "ctx": f"passing args to '{called_func_name}'"
-                     })
+                        "raw": raw_line, "num": orig_line_map[line_index], "ctx": f"passing args to '{called_func_name}'"
+                    })
             for line_in_func in func["body"]:
-                final_lines_to_process.append({"exec": line_in_func, "raw": line_in_func, "num": line_index + 1, "ctx": f"inside '{called_func_name}'"})
+                final_lines_to_process.append({"exec": line_in_func, "raw": line_in_func, "num": orig_line_map[line_index], "ctx": f"inside '{called_func_name}'"})
             continue
 
-        final_lines_to_process.append({"exec": line, "raw": raw_line, "num": line_index + 1, "ctx": ""})
+        final_lines_to_process.append({"exec": line, "raw": raw_line, "num": orig_line_map[line_index], "ctx": ""})
 
     for item in final_lines_to_process:
         line = item["exec"]
@@ -352,8 +363,13 @@ def process_program(args, program_lines, overflow_initial_sp):
         context_str = item.get("ctx", "")
         
         line_strip = canonicalize(del_inline_comment(line))
-        line_to_process = line_strip if line_strip.startswith('"') else to_lowercase(line_strip)
-        if not line_to_process: continue
+        # Do not lowercase string literals
+        if line_strip.startswith('"'):
+            line_to_process = line_strip
+        else:
+            line_to_process = to_lowercase(line_strip)
+        if not line_to_process:
+            continue
 
         old_len_result = len(context.result)
         try:
@@ -362,6 +378,13 @@ def process_program(args, program_lines, overflow_initial_sp):
             print(f"\nTraceback (most recent call last):")
             print(f"  Line {line_num} {context_str}: {raw_origin.strip()}")
             print(f"CompilerError: {str(e)}")
+            # VS Code: try to open file and go to line
+            import os
+            import sys
+            # If running in VS Code and file is known, open it at the error line
+            if hasattr(args, 'source_file') and os.path.exists(args.source_file):
+                # Print VS Code URI for quick jump
+                print(f"::open::{args.source_file}:{line_num}")
             sys.exit(1)
 
         if args.format == 'key' and any(x != 0 and get_npress(x) > 100 for x in context.result[old_len_result:]):

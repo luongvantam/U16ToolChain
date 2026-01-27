@@ -72,30 +72,27 @@ def get_commands(filename):
         add_command(context.commands, address, command, tags, f'at {filename}:{line_index0 + 1}')
         
 def get_key_map(filename):
-    ''' Read a list of key mappings. '''
     context.KEY_MAP = {}
-    
     if not os.path.exists(filename):
         return
-
     with open(filename, 'r', encoding='utf-8') as f:
         data = f.read().splitlines()
-
-    line_regex = re.compile(r'(\w+)\s+([0-9a-fA-F]{4})')
-    
-    for line_index0, line in enumerate(data):
+    line_regex = re.compile(r'(?:([0-9A-Fa-f]{4})\s+(\w+)|(\w+)\s+([0-9A-Fa-f]{4}))')
+    for line in data:
         line = line.strip()
         if not line or line.startswith('#') or line.startswith('//'):
             continue
         line = del_inline_comment(line)
-        if not line: continue
-
-        match = line_regex.search(line)
-        if match:
-            key_name = match[1]
-            hex_raw = match[2]
-            formatted_hex = f"0x{hex_raw[:2]}, 0x{hex_raw[2:]}"
-            context.KEY_MAP[key_name] = formatted_hex
+        if not line:
+            continue
+        m = line_regex.fullmatch(line)
+        if not m:
+            continue
+        if m[1]:
+            hex_raw, key_name = m[1], m[2]
+        else:
+            key_name, hex_raw = m[3], m[4]
+        context.KEY_MAP[key_name] = f"0x{hex_raw[:2]}, 0x{hex_raw[2:]}"
 
 def get_disassembly(filename):
     context.disassembly = [""] * 0x40000 
