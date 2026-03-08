@@ -1,6 +1,6 @@
 # RAC Compiler — Usage Guide
 
-🇻🇳 If you're Vietnamese, please switch to [Guide.vi.md](Guide.vi.md) for Vietnamese.
+🇻🇳 Nếu bạn là người Việt Nam, vui lòng chuyển sang [Guide.vi.md](Guide.vi.md) để xem hướng dẫn bằng tiếng Việt.
 
 ---
 
@@ -60,8 +60,8 @@ Call an address or built-in function, or jump to a label.
 
 ```rsc
 call 0x5678
-call print
-goto start
+call line_print
+goto label
 ```
 
 ---
@@ -122,6 +122,7 @@ Evaluate math or address expressions at compile time.
 ```rsc
 eval(0x1 + 0x2 * 0x3)
 eval(adr(label1) - adr(label2))
+# We can use calc() instead of eval() because they have the same function.
 ```
 
 ---
@@ -138,7 +139,7 @@ reg r1 = 0x5
 r2 = 0xFF
 ```
 
-The way to call a variable is `{varname}`, and the same applies to strings.
+The way to call a variable is `varname`, and the same applies to strings.
 
 ---
 
@@ -154,7 +155,7 @@ call 0x1234 ; goto end
 
 ## 13. Key Mapping
 
-Use key constants for fx580vnx (see key_map.txt for full list).
+Use key constants for fx580vnx (see labels.txt for full list).
 
 ```rsc
 KEY_SHIFT
@@ -164,7 +165,71 @@ KEY_ADD
 
 ---
 
-## 14. Extension System
+## 14. Functions Python
+
+Define a Python function, then call and use it.
+
+```rsc
+org 0xe9e0
+
+def check_even_odd(n) {
+  if n%2==0{
+    return 0x1      # Even
+  } else {
+    return 0x0      # Odd
+  }
+}
+
+py.check_even_odd(0x2)
+py.check_even_odd(0x3)
+```
+
+---
+
+## 15. Repeat
+
+Repeat a block of code a fixed number of times at compile time.
+
+```rsc
+loop 4 {
+  0x67
+}
+hex 00 00
+```
+
+---
+
+## 16. Find_gadgets
+
+Search for suitable gadgets.
+
+```rsc
+find_gadgets {
+  mov er{a[1]}, er{b[1]}
+  pop pc
+}
+```
+Use {var} to specify a hypothetical variable with a value from 0 to 15, {var[1]} to specify a hypothetical variable from 0 to 9.
+
+---
+
+## 17. Section
+
+Sections allow you to divide a file into multiple independent areas.
+
+```rsc
+@set.main
+org 0xe9e0
+hex 30 30 30 30
+
+@set.launcher
+org 0xd180
+xr0 = hex 30 30 30 30
+```
+
+---
+
+## 18. Extension System
 
 You can define new syntax and macros via `extensions.txt`.
 
@@ -181,14 +246,13 @@ call print
 
 ---
 
-## 15. Full Example
+## 19. Full Example
 
 ```rsc
 org 0xe9e0
 var name = "Nick"
 lbl main
   "Hello,~{name}!"
-  call print
 ```
 
 ---

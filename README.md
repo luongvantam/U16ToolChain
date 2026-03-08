@@ -7,7 +7,7 @@
 ## Version
 * **Current:** `v1.1.0`
 * **Build Date:** `2025-10-20`
-* **Latest Update:** `2026-01-25`
+* **Latest Update:** `2026-01-27`
 
 ## License
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html)

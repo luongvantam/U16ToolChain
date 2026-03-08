@@ -120,6 +120,7 @@ Tính toán biểu thức số học hoặc địa chỉ tại thời điểm bi
 ```rsc
 eval(0x1 + 0x2 * 0x3)
 eval(adr(label1) - adr(label2))
+# ta có thể dùng calc() thay thế eval() vì chức năng như nhau
 ```
 
 ---
@@ -136,7 +137,7 @@ reg r1 = 0x5
 r2 = 0xFF
 ```
 
-Cách gọi biến sẽ là `{varname}` và áp dụng tương tự cho string.
+Cách gọi biến sẽ là `varname` và áp dụng tương tự cho string.
 
 ---
 
@@ -152,7 +153,7 @@ call 0x1234 ; goto end
 
 ## 13. Key Mapping
 
-Sử dụng hằng phím cho fx580vnx (xem key_map.txt để tra cứu).
+Sử dụng hằng phím cho fx580vnx (xem labels.txt để tra cứu).
 
 ```rsc
 KEY_SHIFT
@@ -162,7 +163,71 @@ KEY_ADD
 
 ---
 
-## 14. Hệ thống mở rộng (Extension)
+## 14. Functions Python
+
+Định nghĩa một hàm Python, sau đó gọi và sử dụng hàm đó.
+
+```rsc
+org 0xe9e0
+
+def check_even_odd(n) {
+  if n%2==0{
+    return 0x1      # Even
+  } else {
+    return 0x0      # Odd
+  }
+}
+
+py.check_even_odd(0x2)
+py.check_even_odd(0x3)
+```
+
+---
+
+## 15. Vòng lặp
+
+Lặp lại một tập hợp nào đó một số lần cố định trong quá trình biên dịch.
+
+```rsc
+loop 4 {
+  0x67
+}
+hex 00 00
+```
+
+---
+
+## 16. Find_gadgets
+
+Tìm kiếm gadgets phù hợp
+
+```rsc
+find_gadgets {
+  mov er{a[1]}, er{b[1]}
+  pop pc
+}
+```
+Dùng {var} để nêu ra 1 biến giả định có giá trị từ 0 đến 15, {var[1]} để nêu ra 1 biến giả định từ 0 đến 9.
+
+---
+
+## 17. Section
+
+Section cho phép chia một file thành nhiều vùng độc lập.
+
+```rsc
+@set.main
+org 0xe9e0
+hex 30 30 30 30
+
+@set.launcher
+org 0xd180
+xr0 = hex 30 30 30 30
+```
+
+---
+
+## 18. Hệ thống mở rộng (Extension)
 
 Bạn có thể định nghĩa cú pháp mới, macro qua `extensions.txt`.
 
@@ -179,7 +244,7 @@ call print
 
 ---
 
-## 15. Ví dụ hoàn chỉnh
+## 19. Ví dụ hoàn chỉnh
 
 ```rsc
 org 0xe9e0

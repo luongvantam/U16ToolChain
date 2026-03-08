@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Created by luongvantam last created: 02:45 PM 11-01-2025(GMT+7)
-import sys, os, importlib.util, argparse
-from libcompiler import context, loader, hardware, extensions, analysis, engine
+import sys, os, argparse, json
+import lib.rop_compiler as rop_compiler
 
 # Setup Parser
 parser = argparse.ArgumentParser(description="RAC Compiler")
@@ -11,45 +10,47 @@ parser.add_argument('-g', '--gadget-adr', type=lambda x: int(x, 0), help='Find e
 parser.add_argument('-gb', '--gadget-bin', help='Find equivalent addresses for a hex string')
 parser.add_argument('-gn', '--gadget-nword', type=lambda x: int(x, 0), default=0, help='Number of words for gadget search')
 parser.add_argument('-t', '--target', default='none', help='Target platform')
-parser.add_argument('folder', nargs='?', default='.', help='Folder containing config.py and data files')
+parser.add_argument('folder', nargs='?', default='.', help='Folder containing config.json and data files')
+parser.add_argument('input_file', nargs='?', help='Input RSC file')
 
 args, unknown = parser.parse_known_args()
 
 # Load Config
 folder_path = args.folder
-config_file_path = os.path.join(folder_path, "config.py")
+config_file_path = os.path.join(folder_path, "config.json")
 
 if not os.path.exists(config_file_path):
     print(f"Error: Configuration file not found at {config_file_path}")
     sys.exit(1)
 
-spec = importlib.util.spec_from_file_location("config", config_file_path)
-config = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(config)
+config_file_path = os.path.join(folder_path, "config.json")
+
+with open(config_file_path, "r", encoding="utf-8") as f:
+    config = json.load(f)
 
 def get_path(filename):
     return os.path.join(folder_path, filename)
 
 # Initialize Compiler Components
-analysis.get_rom(get_path(config.rom_file))
-loader.get_disassembly(get_path(config.disassembly_file))
-loader.get_commands(get_path(config.gadgets_file))
-loader.read_rename_list(get_path(config.labels_file))
-loader.get_key_map(get_path(config.key_map_file))
-ext_list = extensions.load_extensions(get_path(config.extensions_file))
+rop_compiler.get_rom(get_path(config["rom_file"]))
+rop_compiler.get_disassembly(get_path(config["disassembly_file"]))
+rop_compiler.get_commands(get_path(config["gadgets_file"]))
+rop_compiler.read_rename_list(get_path(config["labels_file"]))
+ext_list = rop_compiler.load_extensions(get_path(config["extensions_file"]))
+rop_compiler.disas_filename = get_path(config["disassembly_file"])
 
 # Setup Font and Display
 FINAL_FONT = []
-for row in config.FONT:
+for row in config["FONT"]:
     FINAL_FONT.extend(row[:16])
 while len(FINAL_FONT) < 256:
     FINAL_FONT.append(' ')
 
-hardware.set_font(FINAL_FONT)
-hardware.set_npress_array(config.NPRESS)
+rop_compiler.set_font(FINAL_FONT)
+rop_compiler.set_npress_array(config["NPRESS"])
 
 ROMWINDOW = 0xd000
-ROM_DATA = context.rom
+ROM_DATA = rop_compiler.rom
 
 def fetch(addr):
     return ROM_DATA[addr] | (ROM_DATA[addr+1] << 8)
@@ -77,25 +78,35 @@ def get_symbol(x):
     return r0, bytes(result)
 
 symbols = [''.join(FINAL_FONT[b] for b in get_symbol(x)[1]) for x in range(0xf0)] + ['@']*0x10
-hardware.set_symbolrepr(symbols)
+rop_compiler.set_symbolrepr(symbols)
 
 # Main Execution
 if __name__ == "__main__":
     if args.gadget_bin:
-        analysis.print_addresses(analysis.optimize_gadget(bytes.fromhex(args.gadget_bin)), args.preview_count)
+        rop_compiler.print_addresses(rop_compiler.optimize_gadget(bytes.fromhex(args.gadget_bin)), args.preview_count)
     elif args.gadget_nword > 0 and args.gadget_adr is not None:
         start_adr = args.gadget_adr
         end_adr = start_adr + args.gadget_nword * 2
-        analysis.print_addresses(analysis.optimize_gadget(context.rom[start_adr:end_adr]), args.preview_count)
+        rop_compiler.print_addresses(rop_compiler.optimize_gadget(rop_compiler.rom[start_adr:end_adr]), args.preview_count)
     elif args.gadget_adr is not None:
-        analysis.print_addresses(analysis.find_equivalent_addresses(context.rom, {args.gadget_adr}), args.preview_count)
+        rop_compiler.print_addresses(rop_compiler.find_equivalent_addresses(rop_compiler.rom, {args.gadget_adr}), args.preview_count)
     else:
         try:
-            raw_content = sys.stdin.read().splitlines()
-            if not raw_content:
+            if args.input_file:
+                if not os.path.exists(args.input_file):
+                    print(f"Error: Input file not found: {args.input_file}")
+                    sys.exit(1)
+                with open(args.input_file, "r", encoding="utf-8") as f:
+                    raw_content = f.read().splitlines()
+                args.source_file = os.path.abspath(args.input_file)
+            else:
+                raw_content = sys.stdin.read().splitlines()
+                args.source_file = None
+            
+            if not raw_content and not args.input_file:
                 pass 
             
-            program = extensions.expand_extensions_in_program(raw_content, ext_list)
-            engine.process_program(args, program, config.overflow_initial_sp)
+            program = rop_compiler.expand_extensions_in_program(raw_content, ext_list)
+            rop_compiler.process_program(args, program, config["overflow_initial_sp"])
         except EOFError:
             print("Error: Standard input closed unexpectedly.")
