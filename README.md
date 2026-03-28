@@ -1,5 +1,5 @@
 # U16ToolChain
-**U16ToolChain** — Development toolkit for use with nX-U8/nX-U16.
+**U16ToolChain** — Development toolkit for use with ROP nX-U8/nX-U16.
 
 ## Repositories & Resources
 * **Sever discord** [Casio Hacking Community](https://discord.gg/vU4N2Mvz8H)
