@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# only fx580vnx
 import sys
 import argparse
 

@@ -4,9 +4,7 @@ import re
 import argparse
 from typing import List, Optional, Set
 
-# --- CONFIGURATION ---
-# Default directory containing the model text files
-DATA_DIR = "../assets/data"
+DATA_DIR = "disas"
 
 def load_file(model: str) -> List[str]:
     """Loads content from the model file within the data directory."""
@@ -29,9 +27,7 @@ def extract_instruction_payload(line: str) -> str:
     if not addr_match:
         return ""
     
-    # Get the part of the string after the address
     payload_part = line[addr_match.end():].strip()
-    # Normalize whitespaces and take the first two components (e.g., MOV R1)
     parts = re.sub(r'\s+', ' ', payload_part).strip().split(maxsplit=2)
     if len(parts) >= 2:
         return f"{parts[0]} {parts[1]}".upper()
@@ -53,7 +49,6 @@ def get_source_chain(src_lines: List[str], search_addr: str) -> List[str]:
     if not target_payload:
         return []
 
-    # Look for the next valid instruction (skipping junk/empty lines)
     next_payload = ""
     for i in range(start_index + 1, len(src_lines)):
         next_payload = extract_instruction_payload(src_lines[i])
@@ -81,7 +76,6 @@ def translate_by_chain_match(src_chain: List[str], dst_lines: List[str]) -> List
             results.add(dst_lines[i])
             continue
         
-        # If the chain has 2 instructions, verify the sequence
         if n_chain == 2:
             next_payload = ""
             for j in range(i + 1, len(dst_lines)):
@@ -99,7 +93,6 @@ def normalize_address(s: str) -> str:
     if ":" in s:
         bank, addr = s.split(":", 1)
     else:
-        # Fallback for raw strings where the first char is the bank
         if len(s) >= 5:
             bank, addr = s[0], s[1:]
         else:
@@ -113,7 +106,6 @@ def hex_to_address(hex_str: str) -> str:
     if len(clean) != 8:
         raise ValueError("Hex input must be 4 bytes (8 characters)")
     
-    # Logic based on your specific hex-to-address mapping
     b1, b2, b3, b4 = clean[0:2], clean[2:4], clean[4:6], clean[6:8]
     offset = f"{b2}{b1}".upper().zfill(4)
     bank = int(b3[1], 16)
@@ -165,7 +157,6 @@ def process_translation(src_model: str, dst_model: str, addresses: List[str]):
 
     for raw_addr in addresses:
         try:
-            # Check if input is raw hex (8 chars) or a standard address
             if re.fullmatch(r'([0-9A-Fa-f]{2}\s*){4}', raw_addr.strip()) or len(raw_addr.strip()) == 8:
                 formatted_addr = hex_to_address(raw_addr)
             else:
@@ -176,7 +167,6 @@ def process_translation(src_model: str, dst_model: str, addresses: List[str]):
 
         print(f"\n{"-" * 22} Gadget {formatted_addr} {"-" * 22}")
         
-        # Search for source chain (attempt 4-byte backscan)
         source_chain = []
         current_search = formatted_addr
         for _ in range(4):
@@ -213,7 +203,6 @@ def main():
 
     args = parser.parse_args()
 
-    # Flatten inputs in case user uses comma/semicolon separation
     input_addresses = []
     for a in args.addrs:
         input_addresses.extend(re.split(r'[;,]+', a))
